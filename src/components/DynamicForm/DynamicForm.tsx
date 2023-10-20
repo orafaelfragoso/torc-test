@@ -1,10 +1,11 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react'
+import React, { ChangeEvent, FormEvent, ReactNode, useState } from 'react'
 import useFormState from '@/hooks/useFormState'
 import useFormDispatch from '@/hooks/useFormDispatch'
 import { FormState } from '@/context/form'
 
 export interface FieldConfig {
   type: 'text' | 'number' | 'select'
+  textOnly?: boolean
   label: string
   options?: string[]
 }
@@ -22,7 +23,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fields }) => {
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
-    dispatch({ type: 'update', field: name, value })
+    dispatch({ type: 'update', field: name, value, fields })
   }
 
   const handleSubmit = (e: FormEvent) => {
@@ -30,6 +31,19 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fields }) => {
     setSubmittedData(formState)
     // @ts-ignore
     document.getElementById('formResult').showModal()
+  }
+
+  const handleData = (data: FormState | null): ReactNode => {
+    if (data) {
+      return Object.keys(data).map((field) => (
+        <p key={field} className="py-1 ">
+          <b>{field.charAt(0).toUpperCase() + field.slice(1)}</b>:{' '}
+          {data[field].value}
+        </p>
+      ))
+    }
+
+    return null
   }
 
   return (
@@ -44,6 +58,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fields }) => {
               {fieldConfig.type === 'select' ? (
                 <select
                   name={fieldName}
+                  required
                   onChange={handleInputChange}
                   className="select select-bordered"
                 >
@@ -57,10 +72,18 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fields }) => {
                 <input
                   type={fieldConfig.type}
                   name={fieldName}
+                  required
                   onChange={handleInputChange}
-                  value={formState[fieldName] || ''}
+                  value={formState[fieldName]?.value || ''}
                   className="input input-bordered w-full"
                 />
+              )}
+              {formState[fieldName]?.error && (
+                <label className="label">
+                  <span className="label-text-alt text-red-500">
+                    {formState[fieldName].error}
+                  </span>
+                </label>
               )}
             </div>
           ))}
@@ -71,8 +94,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fields }) => {
       </div>
       <dialog id="formResult" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box">
-          <h3 className="font-bold text-lg">Form</h3>
-          <pre className="p-4">{JSON.stringify(submittedData, null, 2)}</pre>
+          <h2 className="font-bold text-lg">Form</h2>
+          {handleData(submittedData)}
           <div className="modal-action">
             <form method="dialog">
               <button className="btn">Close</button>

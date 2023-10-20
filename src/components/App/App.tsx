@@ -2,7 +2,8 @@ import DynamicForm, { FieldConfig } from '@/components/DynamicForm'
 import { FormProvider } from '@/context/form'
 
 const formConfig: { [key: string]: FieldConfig } = {
-  name: { type: 'text', label: 'Name' },
+  name: { type: 'text', label: 'Name', textOnly: true },
+  lastName: { type: 'text', label: 'Last Name', textOnly: true },
   age: { type: 'number', label: 'Age' },
   country: {
     type: 'select',
